@@ -63,6 +63,7 @@ public class ExcelMerger {
         } catch (IOException e) {
             e.printStackTrace();
         }
+        log.info("Finished merge excel files to {}", summaryFile.getName());
     }
 
     private Stream<Pair<String, Sheet>> listAllSheets(Pair<String, Workbook> nameWorkbookPair) {
@@ -91,7 +92,7 @@ public class ExcelMerger {
         try {
             return new XSSFWorkbook(file);
         } catch (Exception e) {
-            log.error("Failed to open file:{} with format XSSF.", file.getAbsolutePath());
+            log.info("Failed to open file:{} with format XSSF.", file.getAbsolutePath());
         }
         return null;
     }
@@ -100,7 +101,7 @@ public class ExcelMerger {
         try {
             return new HSSFWorkbook(new FileInputStream(file));
         } catch (Exception e) {
-            log.error("Failed to open file:{} with format HSSF.", file.getAbsolutePath());
+            log.info("Failed to open file:{} with format HSSF.", file.getAbsolutePath());
         }
         return null;
     }
