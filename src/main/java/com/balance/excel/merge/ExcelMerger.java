@@ -2,6 +2,7 @@ package com.balance.excel.merge;
 
 import com.balance.excel.merge.excel.SheetAgency;
 import com.balance.excel.merge.model.ExcelSheetData;
+import com.balance.excel.merge.model.Pair;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Sheet;
@@ -29,9 +30,9 @@ public class ExcelMerger {
     public void merge() {
         ExcelSheetData excelSheetData = inputFiles.stream()
                 .map(file -> openExcel(file))
-                .filter(Objects::nonNull)
-                .flatMap(workBook -> listAllSheets(workBook))
-                .map(sheet -> ExcelSheetData.parseFromSheet(sheet))
+                .filter(p -> Objects.nonNull(p.getValue()))
+                .flatMap(nameWorkBookPair -> listAllSheets(nameWorkBookPair))
+                .map(sheetPair -> ExcelSheetData.parseFromSheet(sheetPair.getValue(), sheetPair.getKey()))
                 .filter(excelData -> !CollectionUtils.isEmpty(excelData.getRows()))
                 .reduce(new ExcelSheetData(),
                         (a, b) -> a.merge(b));
@@ -42,6 +43,7 @@ public class ExcelMerger {
     private void saveToExcel(ExcelSheetData excelSheetData, File summaryFile) {
         XSSFWorkbook workbook = new XSSFWorkbook();
         SheetAgency sheetAgency = SheetAgency.of(workbook, "summary");
+        excelSheetData.getTitles().add(ExcelSheetData.EXCEL_LOCATION);
         sheetAgency.write(excelSheetData.getTitles().toArray())
                 .newLine();
 
@@ -63,21 +65,25 @@ public class ExcelMerger {
         }
     }
 
-    private Stream<Sheet> listAllSheets(Workbook workBook) {
-        int count = workBook.getNumberOfSheets();
-        List<Sheet> sheets = new ArrayList<>();
+    private Stream<Pair<String, Sheet>> listAllSheets(Pair<String, Workbook> nameWorkbookPair) {
+        Workbook workbook = nameWorkbookPair.getValue();
+        int count = workbook.getNumberOfSheets();
+        List<Pair<String, Sheet>> sheets = new ArrayList<>();
         for (int i = 0; i < count; i++) {
-            sheets.add(workBook.getSheetAt(i));
+            Sheet sheet = workbook.getSheetAt(i);
+            sheets.add(new Pair<>(
+                    nameWorkbookPair.getKey(),
+                    sheet));
         }
         return sheets.stream();
     }
 
-    private Workbook openExcel(File file) {
+    private Pair<String, Workbook> openExcel(File file) {
         Workbook workbook = openWithHSSF(file);
         if (workbook == null) {
             workbook = openWithXssf(file);
         }
-        return workbook;
+        return new Pair<>(file.getName(), workbook);
 
     }
 

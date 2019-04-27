@@ -19,24 +19,26 @@ import java.util.Map;
 @AllArgsConstructor
 @Builder
 public class ExcelSheetData {
+    public static final String EXCEL_LOCATION = "_数据来源_";
     private List<String> titles;
     private List<Map<String, String>> rows;
 
-    public static ExcelSheetData parseFromSheet(Sheet sheet) {
+    public static ExcelSheetData parseFromSheet(Sheet sheet, String fileName) {
         ExcelSheetData data = new ExcelSheetData();
-        data.loadDataFromSheet(sheet);
+        data.loadDataFromSheet(sheet, fileName);
         return data;
     }
 
-    public void loadDataFromSheet(Sheet sheet) {
+    public void loadDataFromSheet(Sheet sheet, String fileName) {
         initializeTitle(sheet.getRow(0));
         if (CollectionUtils.isEmpty(titles)) {
             return;
         }
-        loadAllData(sheet);
+        loadAllData(sheet, fileName);
     }
 
-    private void loadAllData(Sheet sheet) {
+    private void loadAllData(Sheet sheet, String fileName) {
+        String excelLocation = fileName + "/" + sheet.getSheetName();
         rows = new ArrayList<>();
         for (int rowIndex = 1; rowIndex < sheet.getLastRowNum() ; rowIndex++) {
             Row row = sheet.getRow(rowIndex);
@@ -58,6 +60,7 @@ public class ExcelSheetData {
             if (CollectionUtils.isEmpty(rowData)) {
                 break;
             }
+            rowData.put(EXCEL_LOCATION, excelLocation);
             rows.add(rowData);
         }
     }
