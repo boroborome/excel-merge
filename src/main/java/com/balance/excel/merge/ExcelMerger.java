@@ -36,6 +36,7 @@ public class ExcelMerger {
                 .filter(excelData -> !CollectionUtils.isEmpty(excelData.getRows()))
                 .reduce(new ExcelSheetData(),
                         (a, b) -> a.merge(b));
+        excelSheetData.distinctByPhone();
 
         saveToExcel(excelSheetData, summaryFile);
     }

@@ -105,4 +105,38 @@ public class ExcelSheetData {
         rows.addAll(otherData.getRows());
         return this;
     }
+
+    public void distinctByPhone() {
+        Map<String, Map<String, String>> rowsMap = new HashMap<>();
+        for (Map<String, String> row : rows) {
+            String phone = row.get("家长电话");
+
+            Map<String, String> existRow = rowsMap.get(phone);
+            if (existRow == null) {
+                rowsMap.put(phone, row);
+            } else {
+                mergeRow(existRow, row);
+
+            }
+        }
+
+        rows.clear();
+        rows.addAll(rowsMap.values());
+    }
+
+    private void mergeRow(Map<String, String> existRow, Map<String, String> row) {
+        for (Map.Entry<String, String> entry : row.entrySet()) {
+            String newValue = entry.getValue();
+            String originValue = existRow.get(entry.getKey());
+
+            if (StringUtils.isEmpty(originValue)) {
+                originValue = newValue;
+            } else if (!originValue.contains(newValue)) {
+                originValue = originValue + ";" + newValue;
+            } else {
+                continue;
+            }
+            existRow.put(entry.getKey(), originValue);
+        }
+    }
 }
